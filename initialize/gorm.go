@@ -1,7 +1,6 @@
 package initialize
 
 import (
-	"fmt"
 	"gin-example/global"
 	"gin-example/initialize/core"
 	"gorm.io/driver/mysql"
@@ -10,7 +9,6 @@ import (
 
 func GormMysql() *gorm.DB {
 	m := global.Config.Mysql
-	fmt.Println(m)
 	if m.Dbname == "" {
 		return nil
 	}
