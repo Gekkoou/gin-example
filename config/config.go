@@ -6,4 +6,5 @@ type Config struct {
 	Mysql config.Mysql
 	Zap   config.Zap
 	Redis config.Redis
+	Serve config.Serve
 }
