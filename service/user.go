@@ -34,9 +34,7 @@ func (userService *UserService) Register(req userReq.Register) (err error) {
 		Password: utils.BcryptHash(req.Password),
 		Phone:    req.Phone,
 	}
-	if err = global.DB.Select("Name", "Password", "Phone").Create(&user).Error; err != nil {
-		return err
-	}
+	err = global.DB.Select("Name", "Password", "Phone").Create(&user).Error
 	return
 }
 
@@ -50,9 +48,7 @@ func (userService *UserService) ChangePassword(req userReq.ChangePassword) (err 
 		return errors.New("原密码错误")
 	}
 	u.Password = utils.BcryptHash(req.NewPassword)
-	if err = global.DB.Save(&u).Error; err != nil {
-		return err
-	}
+	err = global.DB.Save(&u).Error
 	return
 }
 
@@ -116,8 +112,6 @@ func (userService *UserService) UpdateUser(req userReq.UpdateUser) error {
 // DeleteUser 删除用户
 func (userService *UserService) DeleteUser(req userReq.DeleteUser) (err error) {
 	var u model.User
-	if err = global.DB.Where("id = ?", req.Id).Delete(&u).Error; err != nil {
-		return err
-	}
+	err = global.DB.Where("id = ?", req.Id).Delete(&u).Error
 	return
 }
