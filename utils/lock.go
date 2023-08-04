@@ -13,9 +13,9 @@ type redisLock struct{}
 
 var RedisLock = new(redisLock)
 
-func (lock *redisLock) Lock(key string, outtime int) (string, error) {
+func (lock *redisLock) Lock(key string, ttl int) (string, error) {
 	randNumber := lock.getRand()
-	ok, err := global.Redis.SetNX(context.Background(), key, randNumber, time.Duration(outtime)*time.Second).Result()
+	ok, err := global.Redis.SetNX(context.Background(), key, randNumber, time.Duration(ttl)*time.Second).Result()
 	if err != nil {
 		return "", err
 	}

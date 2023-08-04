@@ -13,6 +13,7 @@ type Mysql struct {
 	MaxIdleConns int    `mapstructure:"max-idle-conns" json:"max-idle-conns" yaml:"max-idle-conns"` // 空闲中的最大连接数
 	MaxOpenConns int    `mapstructure:"max-open-conns" json:"max-open-conns" yaml:"max-open-conns"` // 打开到数据库的最大连接数
 	LogMode      string `mapstructure:"log-mode" json:"log-mode" yaml:"log-mode"`                   // 是否开启Gorm全局日志
+	ZapLogLevel  string `mapstructure:"zap-log-level" json:"zap-log-level" yaml:"zap-log-level"`    // zap-log 的级别
 }
 
 func (m *Mysql) Dsn() string {

@@ -14,6 +14,7 @@ mysql:
   max-idle-conns: 10
   max-open-conns: 100
   log-mode: error
+  zap-log-level: error
 zap:
   level: info
   prefix: ''
