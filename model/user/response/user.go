@@ -11,3 +11,9 @@ type GetUserList struct {
 	Name  string `json:"name"`  // 用户名
 	Phone string `json:"phone"` // 手机号
 }
+
+type Login struct {
+	User      GetUser `json:"userInfo"`
+	Token     string  `json:"token"`
+	ExpiresAt int64   `json:"expires_at"`
+}

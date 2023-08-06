@@ -16,12 +16,12 @@ func Login(c *gin.Context) {
 		response.FailWithMessage(utils.Translate(err), c)
 		return
 	}
-	err := service.UserServiceApp.Login(req)
+	user, err := service.UserServiceApp.Login(req)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
-	response.OkWithMessage("登录成功", c)
+	response.OkWithDetailed(user, "登录成功", c)
 }
 
 func Register(c *gin.Context) {
@@ -44,8 +44,7 @@ func ChangePassword(c *gin.Context) {
 		response.FailWithMessage(utils.Translate(err), c)
 		return
 	}
-	// TODO: 从 JWT 中提取 user id赋值到req.id
-	req.Id = 0
+	req.Id = utils.GetUserID(c)
 	err := service.UserServiceApp.ChangePassword(req)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
@@ -97,8 +96,7 @@ func UpdateUser(c *gin.Context) {
 		response.FailWithMessage(utils.Translate(err), c)
 		return
 	}
-	// TODO: 从 JWT 中提取 user id赋值到req.id
-	req.Id = 0
+	req.Id = utils.GetUserID(c)
 	err := service.UserServiceApp.UpdateUser(req)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
@@ -113,13 +111,19 @@ func DeleteUser(c *gin.Context) {
 		response.FailWithMessage(utils.Translate(err), c)
 		return
 	}
-	// TODO: 从 JWT 中提取 user id赋值到req.id
-	req.Id = 0
-	// TODO: 判断req.id 与 JWT 中提取 user id是否相等, 不相等则报错
+	if utils.GetUserID(c) != req.Id {
+		response.Fail(c)
+	}
 	err := service.UserServiceApp.DeleteUser(req)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
 	response.OkWithMessage("注销成功", c)
+}
+
+func Logout(c *gin.Context) {
+	uid := utils.GetUserID(c)
+	service.UserServiceApp.Logout(int(uid))
+	response.OkWithMessage("退出成功", c)
 }

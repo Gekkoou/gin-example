@@ -9,6 +9,8 @@ import (
 func Routes() *gin.Engine {
 	r := gin.Default()
 	r.GET("/", api.Index)
+	r.POST("/login", api.Login)
+	r.POST("/register", api.Register)
 	routerGroup := r.Group("")
 	{
 		router.UserRouterApp.InitUserRouter(routerGroup)

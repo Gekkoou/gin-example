@@ -7,4 +7,5 @@ type Config struct {
 	Zap   config.Zap
 	Redis config.Redis
 	Serve config.Serve
+	JWT   config.JWT
 }
