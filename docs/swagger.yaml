@@ -53,7 +53,7 @@ paths:
       - multipart/form-data
       description: 用户注册
       parameters:
-      - description: 用户名111
+      - description: 用户名
         in: formData
         name: name
         required: true

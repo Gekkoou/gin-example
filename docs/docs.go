@@ -99,7 +99,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "用户名111",
+                        "description": "用户名",
                         "name": "name",
                         "in": "formData",
                         "required": true
