@@ -30,7 +30,7 @@ redis:
   addr: 127.0.0.1:6379
   password: ""
 jwt:
-  signing-key: e04696f5-b40c-1294-1d0b-527b8ec174dd
+  signing-key: ""
   expires-time: 7d
   issuer: gin-example
   token-key: token
