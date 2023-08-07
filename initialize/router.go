@@ -2,8 +2,12 @@ package initialize
 
 import (
 	"gin-example/api"
+	"gin-example/docs"
 	router "gin-example/route"
 	"github.com/gin-gonic/gin"
+
+	"github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func Routes() *gin.Engine {
@@ -15,5 +19,8 @@ func Routes() *gin.Engine {
 	{
 		router.UserRouterApp.InitUserRouter(routerGroup)
 	}
+	docs.SwaggerInfo.BasePath = "/"
+	// 文档
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	return r
 }
