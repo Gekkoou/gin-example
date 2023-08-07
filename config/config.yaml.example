@@ -1,9 +1,9 @@
 serve:
-  ip: "127.0.0.1"
-  addr: "8888"
+  ip: 127.0.0.1
+  addr: 8888
 mysql:
   path: 127.0.0.1
-  port: "3306"
+  port: 3306
   config: charset=utf8mb4&parseTime=True&loc=Local
   db-name: gin-example
   username: root
@@ -17,7 +17,7 @@ mysql:
   zap-log-level: error
 zap:
   level: info
-  prefix: ''
+  prefix: ""
   format: json
   director: log
   encode-level: LowercaseLevelEncoder
