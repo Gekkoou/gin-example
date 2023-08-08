@@ -24,9 +24,8 @@
 ├── log               (日志)
 ├── middleware        (中间件层)
 ├── model             (模型层)
-│   └── common
-│       ├── request   (入参结构体)
-│       └── response  (出参结构体)
+│   ├── request       (入参结构体)
+│   └── response      (出参结构体)
 ├── route             (路由层)
 ├── service           (service层)
 └── utils             (工具包)
