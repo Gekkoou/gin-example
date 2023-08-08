@@ -35,7 +35,11 @@ func Initialize(reload bool) {
 		return
 	}
 	// 初始化Redis
-	global.Redis = Redis()
+	global.Redis, err = Redis()
+	if err != nil {
+		fmt.Printf("Redis初始化失败, err = %s", err.Error())
+		return
+	}
 	// 初始化翻译器
 	err = InitTrans("zh")
 	if err != nil {
