@@ -8,10 +8,6 @@ import (
 	"time"
 )
 
-type DBBASE interface {
-	GetLogMode() string
-}
-
 var Gorm = new(_gorm)
 
 type _gorm struct{}
@@ -24,21 +20,15 @@ func (g *_gorm) Config(prefix string, singular bool) *gorm.Config {
 		},
 		DisableForeignKeyConstraintWhenMigrating: true,
 	}
-	/*	_default := logger.New(log.New(os.Stdout, "\r\n", log.LstdFlags), logger.Config{
-		SlowThreshold: 200 * time.Millisecond,
-		LogLevel:      logger.Warn,
-		Colorful:      true,
-	})*/
 
 	_default := logger.New(Writer{}, logger.Config{
-		SlowThreshold: 200 * time.Millisecond,
-		LogLevel:      logger.Warn,
-		Colorful:      true,
+		SlowThreshold:             200 * time.Millisecond,
+		LogLevel:                  logger.Warn,
+		IgnoreRecordNotFoundError: true,
+		Colorful:                  false,
 	})
 
-	logMode := global.Config.Mysql
-
-	switch logMode.GetLogMode() {
+	switch global.Config.Mysql.LogMode {
 	case "silent", "Silent":
 		config.Logger = _default.LogMode(logger.Silent)
 	case "error", "Error":
