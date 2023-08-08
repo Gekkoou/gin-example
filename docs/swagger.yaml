@@ -1,3 +1,53 @@
+definitions:
+  response.GetUser:
+    properties:
+      id:
+        type: integer
+      name:
+        description: 用户名
+        type: string
+      phone:
+        description: 手机号
+        type: string
+    type: object
+  response.GetUserList:
+    properties:
+      id:
+        type: integer
+      name:
+        description: 用户名
+        type: string
+      phone:
+        description: 手机号
+        type: string
+    type: object
+  response.Login:
+    properties:
+      expires_at:
+        type: integer
+      token:
+        type: string
+      userInfo:
+        $ref: '#/definitions/response.GetUser'
+    type: object
+  response.PageResult:
+    properties:
+      list: {}
+      page:
+        type: integer
+      pageSize:
+        type: integer
+      total:
+        type: integer
+    type: object
+  response.Response:
+    properties:
+      code:
+        type: integer
+      data: {}
+      msg:
+        type: string
+    type: object
 info:
   contact: {}
   description: gin-exampl api.
@@ -26,7 +76,12 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.Login'
+              type: object
       summary: 用户登录
       tags:
       - 公共
@@ -41,7 +96,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
+            $ref: '#/definitions/response.Response'
       security:
       - ApiKeyAuth: []
       summary: 登出
@@ -73,7 +128,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
+            $ref: '#/definitions/response.Response'
       summary: 用户注册
       tags:
       - 公共
@@ -94,7 +149,12 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.GetUser'
+              type: object
       security:
       - ApiKeyAuth: []
       summary: 获取用户
@@ -122,7 +182,19 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.GetUserList'
+                        type: array
+                    type: object
+              type: object
       security:
       - ApiKeyAuth: []
       summary: 获取用户列表
@@ -149,7 +221,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
+            $ref: '#/definitions/response.Response'
       security:
       - ApiKeyAuth: []
       summary: 更新用户
@@ -177,7 +249,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
+            $ref: '#/definitions/response.Response'
       security:
       - ApiKeyAuth: []
       summary: 修改密码
@@ -199,7 +271,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
+            $ref: '#/definitions/response.Response'
       security:
       - ApiKeyAuth: []
       summary: 删除用户

@@ -13,11 +13,11 @@ import (
 // @Tags 公共
 // @Summary 用户登录
 // @Description 用户登录
-// @Accept mpfd
-// @Produce json
-// @Param userReq.Login formData userReq.Login true "用户登录"
-// @Success 200 {string} string {}
 // @Router /login [post]
+// @Accept mpfd
+// @Param userReq.Login formData userReq.Login true "用户登录"
+// @Produce json
+// @Success 200 {object} response.Response{data=userRes.Login}
 func Login(c *gin.Context) {
 	var req userReq.Login
 	if err := c.ShouldBind(&req); err != nil {
@@ -35,11 +35,11 @@ func Login(c *gin.Context) {
 // @Tags 公共
 // @Summary 用户注册
 // @Description 用户注册
-// @Accept mpfd
-// @Produce json
-// @Param userReq.Register formData userReq.Register true "用户注册"
-// @Success 200 {string} string {}
 // @Router /register [post]
+// @Accept mpfd
+// @Param userReq.Register formData userReq.Register true "用户注册"
+// @Produce json
+// @Success 200 {object} response.Response{}
 func Register(c *gin.Context) {
 	var req userReq.Register
 	if err := c.ShouldBind(&req); err != nil {
@@ -57,12 +57,12 @@ func Register(c *gin.Context) {
 // @Tags 用户
 // @Summary 修改密码
 // @Description 修改密码
+// @Router /user/changePassword [post]
 // @Accept mpfd
-// @Produce json
 // @Security ApiKeyAuth
 // @Param userReq.ChangePassword formData userReq.ChangePassword true "修改密码"
-// @Success 200 {string} string {}
-// @Router /user/changePassword [post]
+// @Produce json
+// @Success 200 {object} response.Response{}
 func ChangePassword(c *gin.Context) {
 	var req userReq.ChangePassword
 	if err := c.ShouldBind(&req); err != nil {
@@ -81,12 +81,12 @@ func ChangePassword(c *gin.Context) {
 // @Tags 用户
 // @Summary 获取用户
 // @Description 获取用户
+// @Router /user/{id} [get]
 // @Accept mpfd
-// @Produce json
 // @Security ApiKeyAuth
 // @Param id path int true "id"
-// @Success 200 {string} string {}
-// @Router /user/{id} [get]
+// @Produce json
+// @Success 200 {object} response.Response{data=userRes.GetUser}
 func GetUser(c *gin.Context) {
 	var req request.GetById
 	if err := c.ShouldBindUri(&req); err != nil {
@@ -108,12 +108,12 @@ func GetUser(c *gin.Context) {
 // @Tags 用户
 // @Summary 获取用户列表
 // @Description 获取用户列表
+// @Router /user/GetUserList [get]
 // @Accept mpfd
-// @Produce json
 // @Security ApiKeyAuth
 // @Param request.PageInfo query request.PageInfo true "获取用户列表"
-// @Success 200 {string} string {}
-// @Router /user/GetUserList [get]
+// @Produce json
+// @Success 200 {object} response.Response{data=response.PageResult{list=[]userRes.GetUserList}}
 func GetUserList(c *gin.Context) {
 	var pageInfo request.PageInfo
 	if err := c.ShouldBind(&pageInfo); err != nil {
@@ -136,12 +136,12 @@ func GetUserList(c *gin.Context) {
 // @Tags 用户
 // @Summary 更新用户
 // @Description 更新用户
-// @Accept mpfd
-// @Produce json
-// @Security ApiKeyAuth
-// @Param  userReq.UpdateUser formData userReq.UpdateUser true "更新用户"
-// @Success 200 {string} string {}
 // @Router /user/UpdateUser [post]
+// @Accept mpfd
+// @Security ApiKeyAuth
+// @Param userReq.UpdateUser formData userReq.UpdateUser true "更新用户"
+// @Produce json
+// @Success 200 {object} response.Response{}
 func UpdateUser(c *gin.Context) {
 	var req userReq.UpdateUser
 	if err := c.ShouldBind(&req); err != nil {
@@ -160,12 +160,12 @@ func UpdateUser(c *gin.Context) {
 // @Tags 用户
 // @Summary 删除用户
 // @Description 删除用户
+// @Router /user/deleteUser [post]
 // @Accept mpfd
-// @Produce json
 // @Security ApiKeyAuth
 // @Param userReq.DeleteUser formData userReq.DeleteUser true "删除用户"
-// @Success 200 {string} string {}
-// @Router /user/deleteUser [post]
+// @Produce json
+// @Success 200 {object} response.Response{}
 func DeleteUser(c *gin.Context) {
 	var req userReq.DeleteUser
 	if err := c.ShouldBind(&req); err != nil {
@@ -186,11 +186,11 @@ func DeleteUser(c *gin.Context) {
 // @Tags 用户
 // @Summary 登出
 // @Description 登出
-// @Accept mpfd
-// @Produce json
-// @Security ApiKeyAuth
-// @Success 200 {string} string {}
 // @Router /logout [get]
+// @Accept mpfd
+// @Security ApiKeyAuth
+// @Produce json
+// @Success 200 {object} response.Response{}
 func Logout(c *gin.Context) {
 	uid := utils.GetUserID(c)
 	service.UserServiceApp.Logout(int(uid))
