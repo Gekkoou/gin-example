@@ -1,8 +1,13 @@
 package initialize
 
 import (
+	"context"
 	"fmt"
 	"gin-example/global"
+	"gin-example/queue"
+	"math/rand"
+	"strconv"
+	"time"
 )
 
 func Initialize(reload bool) {
@@ -46,6 +51,25 @@ func Initialize(reload bool) {
 		fmt.Printf("初始化翻译器错误, err = %s", err.Error())
 		return
 	}
+	global.Queue, err = NewQueue()
+	if err != nil {
+		fmt.Printf("初始化队列, err = %s", err.Error())
+		return
+	}
+
+	//  测试部分
+	// 推送调用
+	go func() {
+		for true {
+			if err := global.Queue.Push(queue.TestTaskApp, context.Background(), strconv.Itoa(rand.Intn(999999))); err != nil {
+				fmt.Println(err)
+				global.Log.Error(err.Error())
+			}
+			time.Sleep(time.Second)
+		}
+	}()
+	// 测试部分结束
+
 	// 注册路由
 	r := Routes()
 	if !reload {

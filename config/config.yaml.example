@@ -34,3 +34,14 @@ jwt:
   expires-time: 7d
   issuer: gin-example
   token-key: token
+queue:
+  redis:
+    db: 0
+    addr: 127.0.0.1:6379
+    password: ""
+  kafka:
+    brokers: 127.0.0.1:9092
+    MinBytes: 1
+    MaxBytes: 10e6
+    AllowAutoTopicCreation: true
+  prefix: "queue:"

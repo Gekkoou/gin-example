@@ -8,4 +8,5 @@ type Config struct {
 	Redis config.Redis
 	Serve config.Serve
 	JWT   config.JWT
+	Queue config.Queue
 }

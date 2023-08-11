@@ -2,6 +2,7 @@ package global
 
 import (
 	"gin-example/config"
+	"gin-example/queue/core"
 	"github.com/go-playground/universal-translator"
 	"github.com/redis/go-redis/v9"
 	"github.com/spf13/viper"
@@ -16,4 +17,5 @@ var (
 	Config config.Config
 	VP     *viper.Viper
 	Log    *zap.Logger
+	Queue  *core.Queue
 )
