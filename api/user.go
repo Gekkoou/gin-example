@@ -108,7 +108,7 @@ func GetUser(c *gin.Context) {
 // @Tags 用户
 // @Summary 获取用户列表
 // @Description 获取用户列表
-// @Router /user/GetUserList [get]
+// @Router /user/list [get]
 // @Accept mpfd
 // @Security ApiKeyAuth
 // @Param request.PageInfo query request.PageInfo true "获取用户列表"
@@ -136,7 +136,7 @@ func GetUserList(c *gin.Context) {
 // @Tags 用户
 // @Summary 更新用户
 // @Description 更新用户
-// @Router /user/UpdateUser [post]
+// @Router /user/update [post]
 // @Accept mpfd
 // @Security ApiKeyAuth
 // @Param userReq.UpdateUser formData userReq.UpdateUser true "更新用户"

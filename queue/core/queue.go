@@ -28,9 +28,12 @@ func (q *Queue) Register(j *Job, name string) {
 }
 
 // 实例化 job
-func (q *Queue) NewJob(conf config.Queue) error {
+func (q *Queue) NewJob(cfg config.Queue) error {
 	for _, task := range q.task {
-		j := NewJob(task, task.GetConnType(), conf)
+		j, err := NewJob(task, task.GetConnType(), cfg)
+		if err != nil {
+			return err
+		}
 		q.Register(j, j.Child.GetName())
 	}
 	return nil
@@ -38,7 +41,6 @@ func (q *Queue) NewJob(conf config.Queue) error {
 
 // 提供 push 接口
 func (q *Queue) Push(face TaskInterFace, ctx context.Context, message string) (err error) {
-
 	defer func() {
 		if r := recover(); r != nil {
 			err = errors.New(fmt.Sprint("推送失败", r))

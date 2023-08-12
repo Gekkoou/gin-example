@@ -5,31 +5,38 @@ import (
 	"fmt"
 	"gin-example/config/config"
 	"gin-example/queue/drive"
-	"log"
+	"github.com/bytedance/sonic"
+	"github.com/gin-gonic/gin"
 	"time"
 )
 
+type JobErr struct {
+	Name    string
+	Err     string
+	PfErr   string
+	Message string
+}
+
 type Job struct {
-	Conn           drive.Interface
-	Name           string
-	Child          TaskInterFace
-	ConsumerNumber int
+	Conn  drive.Interface
+	Name  string
+	Child TaskInterFace
 }
 
-func NewJob(child TaskInterFace, t ConnType, conf config.Queue) *Job {
+func NewJob(child TaskInterFace, t ConnType, cfg config.Queue) (*Job, error) {
 	j := &Job{Child: child}
-	j.SetType(t, child.GetName(), conf)
-	j.ConsumerNumber = child.GetConsumerNumber()
-	return j
+	err := j.SetType(t, child.GetName(), cfg)
+	return j, err
 }
 
-func (j *Job) SetType(t ConnType, name string, conf config.Queue) {
+func (j *Job) SetType(t ConnType, name string, cfg config.Queue) (err error) {
 	switch t {
 	case Kafka:
-		j.Conn = drive.NewKafka(name, conf.Kafka, conf.Prefix)
+		j.Conn, err = drive.NewKafka(name, cfg.Kafka, cfg.Prefix, cfg.FailureSuffix)
 	case Redis:
-		j.Conn = drive.NewRedis(name, conf.Redis, conf.Prefix)
+		j.Conn, err = drive.NewRedis(name, cfg.Redis, cfg.Prefix, cfg.FailureSuffix)
 	}
+	return err
 }
 
 func (t *Job) Push(ctx context.Context, message string) error {
@@ -38,7 +45,7 @@ func (t *Job) Push(ctx context.Context, message string) error {
 }
 
 func (t *Job) Run() {
-	for i := 0; i < t.ConsumerNumber; i++ {
+	for i := 0; i < t.Child.GetConsumerNumber(); i++ {
 		t.RunHandel()
 	}
 }
@@ -50,19 +57,40 @@ func (t *Job) RunHandel() {
 			}
 		}()
 		ctx := context.Background()
+		var pfErr error
+		retryCount := t.Child.GetRetryCount()
 		for {
 			m, err := t.Conn.GetMessage(ctx)
 			if err != nil {
-				log.Fatalln(err)
+				fmt.Println("消费信息拉取失败", err)
+				time.Sleep(5 * time.Second)
+				continue
 			}
-			for i := 1; i <= t.Child.GetRetryCount(); i++ {
+			for i := 1; i <= retryCount; i++ {
 				if err = t.Child.Handel(m); err == nil {
 					break
 				}
-				if i == t.Child.GetRetryCount() {
-					log.Fatalln(err)
-				}
 				time.Sleep(100 * time.Millisecond)
+			}
+			if err != nil {
+				jobErrString, _ := sonic.MarshalString(&JobErr{Name: t.Child.GetName(),
+					Err:     err.Error(),
+					Message: m,
+				})
+				for i := 1; i <= retryCount; i++ {
+					if pfErr = t.Conn.PushFailure(ctx, jobErrString); pfErr == nil {
+						break
+					}
+					if i == retryCount {
+						fmt.Println("消费失败", gin.H{
+							"name":  t.Child.GetName(),
+							"err":   err.Error(),
+							"pfErr": pfErr.Error(),
+						})
+					} else {
+						time.Sleep(100 * time.Millisecond)
+					}
+				}
 			}
 			t.Conn.CommitMessage(ctx)
 		}

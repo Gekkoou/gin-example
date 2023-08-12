@@ -44,4 +44,7 @@ queue:
     min-bytes: 1
     max-bytes: 10e6
     allow-auto-topic-creation: true
+    num-partitions: 1
+    replication-factor: 1
   prefix: "queue:"
+  failure-suffix: ":failure"

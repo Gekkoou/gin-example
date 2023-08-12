@@ -160,73 +160,6 @@ paths:
       summary: 获取用户
       tags:
       - 用户
-  /user/GetUserList:
-    get:
-      consumes:
-      - multipart/form-data
-      description: 获取用户列表
-      parameters:
-      - description: 页码
-        in: query
-        name: page
-        required: true
-        type: integer
-      - description: 每页大小
-        in: query
-        name: pageSize
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Response'
-            - properties:
-                data:
-                  allOf:
-                  - $ref: '#/definitions/response.PageResult'
-                  - properties:
-                      list:
-                        items:
-                          $ref: '#/definitions/response.GetUserList'
-                        type: array
-                    type: object
-              type: object
-      security:
-      - ApiKeyAuth: []
-      summary: 获取用户列表
-      tags:
-      - 用户
-  /user/UpdateUser:
-    post:
-      consumes:
-      - multipart/form-data
-      description: 更新用户
-      parameters:
-      - description: 用户名
-        in: formData
-        name: name
-        required: true
-        type: string
-      - description: 手机号
-        in: formData
-        name: phone
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.Response'
-      security:
-      - ApiKeyAuth: []
-      summary: 更新用户
-      tags:
-      - 用户
   /user/changePassword:
     post:
       consumes:
@@ -275,6 +208,73 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: 删除用户
+      tags:
+      - 用户
+  /user/list:
+    get:
+      consumes:
+      - multipart/form-data
+      description: 获取用户列表
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        required: true
+        type: integer
+      - description: 每页大小
+        in: query
+        name: pageSize
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.GetUserList'
+                        type: array
+                    type: object
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 获取用户列表
+      tags:
+      - 用户
+  /user/update:
+    post:
+      consumes:
+      - multipart/form-data
+      description: 更新用户
+      parameters:
+      - description: 用户名
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: 手机号
+        in: formData
+        name: phone
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 更新用户
       tags:
       - 用户
 securityDefinitions:
