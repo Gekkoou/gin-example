@@ -20,17 +20,6 @@ func (User) TableName() string {
 	return "users"
 }
 
-func (u *User) BeforeSave(tx *gorm.DB) (err error) {
-	fmt.Println("BeforeSave User", u)
-	return
-}
-
-func (u *User) AfterSave(tx *gorm.DB) (err error) {
-	fmt.Println("AfterSave User", u)
-	u.DeleteCache(int(u.Id))
-	return
-}
-
 func (u *User) BeforeUpdate(tx *gorm.DB) (err error) {
 	fmt.Println("BeforeUpdate User", u)
 	return
