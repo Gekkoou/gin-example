@@ -21,7 +21,6 @@ func (r *_redis) NewRedis() *redis.Client {
 		Password: r.Conf.Password, // 没有密码，默认值
 		DB:       r.Conf.DB,       // 默认DB 0
 	})
-	// return global.Redis
 	return client
 }
 
@@ -43,7 +42,6 @@ func (r *_redis) Push(ctx context.Context, message string) (err error) {
 }
 func (r *_redis) GetMessage(ctx context.Context) (string, error) {
 	msg, err := r.Produce.BRPop(ctx, 0, r.Prefix+r.Name).Result()
-	// return strings.Join(msg[1], ""), err
 	return msg[1], err
 }
 

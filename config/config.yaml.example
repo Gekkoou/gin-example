@@ -41,7 +41,7 @@ queue:
     password: ""
   kafka:
     brokers: 127.0.0.1:9092
-    MinBytes: 1
-    MaxBytes: 10e6
-    AllowAutoTopicCreation: true
+    min-bytes: 1
+    max-bytes: 10e6
+    allow-auto-topic-creation: true
   prefix: "queue:"

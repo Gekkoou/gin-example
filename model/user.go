@@ -3,6 +3,7 @@ package model
 import (
 	"fmt"
 	"gin-example/global"
+	"gin-example/queue"
 	"gin-example/utils"
 	"gorm.io/gorm"
 )
@@ -52,5 +53,9 @@ func (u *User) AfterDelete(tx *gorm.DB) (err error) {
 }
 
 func (u *User) DeleteCache(uid int) {
-	utils.DelCache(utils.GetCacheKeyById(global.UserInfoDaoPrefixKey, uid))
+	key := utils.GetCacheKeyById(global.UserInfoDaoPrefixKey, uid)
+	utils.DelCache(key)
+
+	// 双删
+	utils.AsynQueue(queue.DelCacheTaskApp, queue.DelCachePayload{Key: key})
 }

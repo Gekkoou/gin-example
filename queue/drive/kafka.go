@@ -24,7 +24,7 @@ func (k *_kafka) newKafkaWriter() *kafka.Writer {
 		Addr:                   kafka.TCP(brokers...),
 		Topic:                  k.Name,
 		Balancer:               &kafka.LeastBytes{},
-		AllowAutoTopicCreation: k.Conf.AllowAutoTopicCreation, // 是否允许不存在的topic 自动创建 , 需要注意，如果是自动创建的话，创建完之后集群会进行选举，不要马上发消息
+		AllowAutoTopicCreation: k.Conf.AllowAutoTopicCreation, // 是否允许不存在的 topic 自动创建, 需要注意，如果是自动创建的话，创建完之后集群会进行选举，不要马上发消息
 	}
 }
 
@@ -73,11 +73,6 @@ func (k *_kafka) GetMessage_() (string, error) {
 	return string(message.Value), nil
 }*/
 
-func (k *_kafka) CommitMessage(ctx context.Context) (err error) {
-	err = k.Comsume.CommitMessages(ctx, k.LastMessage)
-	return
-}
-
 func (k *_kafka) GetMessage(ctx context.Context) (string, error) {
 	message, err := k.Comsume.FetchMessage(ctx)
 	if err != nil {
@@ -85,4 +80,9 @@ func (k *_kafka) GetMessage(ctx context.Context) (string, error) {
 	}
 	k.LastMessage = message
 	return string(message.Value), nil
+}
+
+func (k *_kafka) CommitMessage(ctx context.Context) (err error) {
+	err = k.Comsume.CommitMessages(ctx, k.LastMessage)
+	return
 }
