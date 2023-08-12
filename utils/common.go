@@ -25,7 +25,6 @@ func GetValidateErr(error error, obj any) error {
 	if !ok {
 		return error
 	}
-	fmt.Println(errs.Translate(global.Trans))
 	for _, err := range errs {
 		if field, ok := reflect.TypeOf(obj).FieldByName(err.Field()); ok {
 			if e := field.Tag.Get("err"); e != "" {

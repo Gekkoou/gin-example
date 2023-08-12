@@ -2,7 +2,6 @@ package drive
 
 import (
 	"context"
-	"fmt"
 	"gin-example/config/config"
 	"github.com/redis/go-redis/v9"
 )
@@ -34,9 +33,8 @@ func NewRedis(topic string, conf config.Redis, prefix string) Interface {
 }
 
 func (r *_redis) Push(ctx context.Context, message string) (err error) {
-	err = r.Produce.LPush(ctx, r.Prefix+r.Name, message).Err()
-	if err != nil {
-		fmt.Println(err.Error())
+	if err = r.Produce.LPush(ctx, r.Prefix+r.Name, message).Err(); err != nil {
+		return
 	}
 	return nil
 }

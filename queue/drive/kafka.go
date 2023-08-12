@@ -4,7 +4,6 @@ import (
 	"context"
 	"gin-example/config/config"
 	"github.com/segmentio/kafka-go"
-	"log"
 	"strings"
 )
 
@@ -58,9 +57,6 @@ func (k *_kafka) Push(ctx context.Context, message string) (err error) {
 			Value: []byte(message),
 		},
 	)
-	if err != nil {
-		log.Fatal("failed to write messages:", err)
-	}
 	return
 }
 
