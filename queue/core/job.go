@@ -6,6 +6,7 @@ import (
 	"gin-example/config/config"
 	"gin-example/queue/drive"
 	"log"
+	"time"
 )
 
 type Job struct {
@@ -53,11 +54,15 @@ func (t *Job) RunHandel() {
 			m, err := t.Conn.GetMessage(ctx)
 			if err != nil {
 				log.Fatalln(err)
-				// break
 			}
-			if err := t.Child.Handel(m); err != nil {
-				log.Fatalln(err)
-				return
+			for i := 1; i <= t.Child.GetRetryCount(); i++ {
+				if err = t.Child.Handel(m); err == nil {
+					break
+				}
+				if i == t.Child.GetRetryCount() {
+					log.Fatalln(err)
+				}
+				time.Sleep(100 * time.Millisecond)
 			}
 			t.Conn.CommitMessage(ctx)
 		}

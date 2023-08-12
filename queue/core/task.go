@@ -6,4 +6,5 @@ type TaskInterFace interface {
 	Handel(string) error
 	Enable() bool
 	GetConsumerNumber() int
+	GetRetryCount() int
 }

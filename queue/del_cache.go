@@ -45,6 +45,10 @@ func (t *DelCacheTask) GetConsumerNumber() int {
 	return 3
 }
 
+func (t *DelCacheTask) GetRetryCount() int {
+	return 3
+}
+
 type DelCachePayload struct {
 	Key string
 }

@@ -37,3 +37,7 @@ func (t *TestTask) Enable() bool {
 func (t *TestTask) GetConsumerNumber() int {
 	return 3
 }
+
+func (t *TestTask) GetRetryCount() int {
+	return 3
+}
