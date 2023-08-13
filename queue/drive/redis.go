@@ -43,9 +43,9 @@ func (r *_redis) PushFailure(ctx context.Context, message string) (err error) {
 func (r *_redis) GetMessage(ctx context.Context) (string, error) {
 	msg, err := r.Produce.BRPop(ctx, 0, r.Name).Result()
 	if err != nil {
-		return msg[1], err
+		return "", err
 	}
-	return "", err
+	return msg[1], err
 }
 
 func (r *_redis) CommitMessage(context.Context) error {

@@ -7,6 +7,7 @@ import (
 	"gin-example/queue/drive"
 	"github.com/bytedance/sonic"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"time"
 )
 
@@ -18,14 +19,15 @@ type JobErr struct {
 }
 
 type Job struct {
-	Conn  drive.Interface
-	Name  string
-	Child TaskInterFace
+	Conn   drive.Interface
+	Name   string
+	Child  TaskInterFace
+	Logger *zap.Logger
 }
 
-func NewJob(child TaskInterFace, t ConnType, cfg config.Queue) (*Job, error) {
-	j := &Job{Child: child}
-	err := j.SetType(t, child.GetName(), cfg)
+func NewJob(child TaskInterFace, cfg config.Queue, logger *zap.Logger) (*Job, error) {
+	j := &Job{Child: child, Logger: logger}
+	err := j.SetType(child.GetConnType(), child.GetName(), cfg)
 	return j, err
 }
 
@@ -73,23 +75,26 @@ func (t *Job) RunHandel() {
 				time.Sleep(100 * time.Millisecond)
 			}
 			if err != nil {
-				jobErrString, _ := sonic.MarshalString(&JobErr{Name: t.Child.GetName(),
+				jobErrString, _ := sonic.MarshalString(&JobErr{
+					Name:    t.Child.GetName(),
 					Err:     err.Error(),
 					Message: m,
 				})
+				t.Logger.Error(jobErrString)
 				for i := 1; i <= retryCount; i++ {
 					if pfErr = t.Conn.PushFailure(ctx, jobErrString); pfErr == nil {
 						break
 					}
 					if i == retryCount {
-						fmt.Println("消费失败", gin.H{
+						pfErrString := fmt.Sprintf("消费失败 %+v", gin.H{
 							"name":  t.Child.GetName(),
 							"err":   err.Error(),
 							"pfErr": pfErr.Error(),
 						})
-					} else {
-						time.Sleep(100 * time.Millisecond)
+						fmt.Println(pfErrString)
+						t.Logger.Error(pfErrString)
 					}
+					time.Sleep(100 * time.Millisecond)
 				}
 			}
 			t.Conn.CommitMessage(ctx)

@@ -5,11 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"gin-example/config/config"
+	"go.uber.org/zap"
 )
 
 type Queue struct {
-	Jobs map[string]Job
-	task []TaskInterFace
+	Jobs   map[string]Job
+	task   []TaskInterFace
+	Logger *zap.Logger
 }
 
 var QueueApp = &Queue{Jobs: map[string]Job{}}
@@ -30,7 +32,7 @@ func (q *Queue) Register(j *Job, name string) {
 // 实例化 job
 func (q *Queue) NewJob(cfg config.Queue) error {
 	for _, task := range q.task {
-		j, err := NewJob(task, task.GetConnType(), cfg)
+		j, err := NewJob(task, cfg, q.Logger)
 		if err != nil {
 			return err
 		}
