@@ -45,5 +45,5 @@ func (u *User) DeleteCache(uid int) {
 	key := utils.GetCacheKeyById(global.UserInfoDaoPrefixKey, uid)
 	utils.DelCache(key)
 	// 双删
-	utils.AsynQueue(global.QueueDelCache, &queue.DelCachePayload{Key: key})
+	utils.AsynQueue(global.QueueDelCache, queue.DelCachePayload{Key: key})
 }
