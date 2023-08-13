@@ -42,13 +42,13 @@ func (q *Queue) NewJob(cfg config.Queue) error {
 }
 
 // 提供 push 接口
-func (q *Queue) Push(face TaskInterFace, ctx context.Context, message string) (err error) {
+func (q *Queue) Push(queue string, ctx context.Context, message string) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = errors.New(fmt.Sprint("推送失败", r))
 		}
 	}()
-	job := q.Jobs[face.GetName()]
+	job := q.Jobs[queue]
 	err = job.Push(ctx, message)
 	return err
 }

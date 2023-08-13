@@ -2,6 +2,7 @@ package initialize
 
 import (
 	"gin-example/global"
+	_ "gin-example/queue"
 	"gin-example/queue/core"
 )
 

@@ -2,6 +2,8 @@ package queue
 
 import (
 	"fmt"
+	"gin-example/global"
+	"gin-example/model/queue"
 	"gin-example/queue/core"
 	"gin-example/utils"
 	"github.com/bytedance/sonic"
@@ -16,18 +18,18 @@ func init() {
 }
 
 // 队列名
-func (j *DelCacheTask) GetName() string {
-	return "del-cache"
+func (*DelCacheTask) GetName() string {
+	return global.QueueDelCache
 }
 
 // 连接驱动类型
-func (j *DelCacheTask) GetConnType() core.ConnType {
+func (*DelCacheTask) GetConnType() core.ConnType {
 	return core.Kafka
 }
 
 // 处理消费
 func (t *DelCacheTask) Handel(message string) error {
-	p := DelCachePayload{}
+	p := queue.DelCachePayload{}
 	err := sonic.UnmarshalString(message, &p)
 	if err != nil {
 		return fmt.Errorf("unmarshal error: %s", err)
@@ -47,8 +49,4 @@ func (t *DelCacheTask) GetConsumerNumber() int {
 
 func (t *DelCacheTask) GetRetryCount() int {
 	return 3
-}
-
-type DelCachePayload struct {
-	Key string
 }
