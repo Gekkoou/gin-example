@@ -14,10 +14,9 @@ import (
 
 type _kafka struct {
 	Drive
-	Produce *kafka.Writer
-	Comsume *kafka.Reader
-	Cfg     config.Kafka
-
+	Produce     *kafka.Writer
+	Comsume     *kafka.Reader
+	Cfg         config.Kafka
 	LastMessage kafka.Message
 }
 
@@ -29,9 +28,12 @@ func NewKafka(topic string, cfg config.Kafka, prefix, failureSuffix string) (Int
 	// kafka 不能使用 冒号作为 topic , 修改为 -
 	k.Name = k.changeName(k.Name)
 	k.FailureName = k.changeName(k.FailureName)
+	err := k.checkTopic()
+	if err != nil {
+		return nil, err
+	}
 	k.Produce = k.newWriter()
 	k.Comsume = k.getReader()
-	err := k.checkTopic()
 	return k, err
 }
 
@@ -40,7 +42,14 @@ func (*_kafka) changeName(s string) string {
 }
 
 func (k *_kafka) checkTopic() (err error) {
-	conn, err := kafka.Dial("tcp", k.Cfg.Brokers)
+	var conn *kafka.Conn
+	brokers := strings.Split(k.Cfg.Brokers, ",")
+	for _, broker := range brokers {
+		conn, err = kafka.Dial("tcp", broker)
+		if err == nil {
+			break
+		}
+	}
 	if err != nil {
 		return
 	}
@@ -73,6 +82,7 @@ func (k *_kafka) checkTopic() (err error) {
 	}
 	return
 }
+
 func (k *_kafka) createTopic(conn *kafka.Conn, m map[string]struct{}) (err error) {
 	controller, err := conn.Controller()
 	if err != nil {
