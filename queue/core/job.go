@@ -6,27 +6,25 @@ import (
 	"gin-example/config/config"
 	"gin-example/queue/drive"
 	"github.com/bytedance/sonic"
-	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 	"time"
 )
 
 type JobErr struct {
 	Name    string
 	Err     string
-	PfErr   string
 	Message string
 }
 
 type Job struct {
-	Conn   drive.Interface
-	Name   string
-	Child  TaskInterFace
-	Logger *zap.Logger
+	Conn        drive.Interface
+	Name        string
+	Child       TaskInterFace
+	Logger      Logger
+	ErrorLogger Logger
 }
 
-func NewJob(child TaskInterFace, cfg config.Queue, logger *zap.Logger) (*Job, error) {
-	j := &Job{Child: child, Logger: logger}
+func NewJob(child TaskInterFace, cfg config.Queue, logger Logger, errorLogger Logger) (*Job, error) {
+	j := &Job{Child: child, Logger: logger, ErrorLogger: errorLogger}
 	err := j.SetType(child.GetConnType(), child.GetName(), cfg)
 	return j, err
 }
@@ -51,20 +49,20 @@ func (t *Job) Run() {
 		t.RunHandel()
 	}
 }
+
 func (t *Job) RunHandel() {
 	go func() {
 		defer func() {
 			if r := recover(); r != nil {
-				fmt.Println("消费失败", r)
+				t.ErrorLogger.Printf(fmt.Sprintln(t.Child.GetName(), "消费失败", r))
 			}
 		}()
 		ctx := context.Background()
-		var pfErr error
 		retryCount := t.Child.GetRetryCount()
 		for {
 			m, err := t.Conn.GetMessage(ctx)
 			if err != nil {
-				fmt.Println("消费信息拉取失败", err)
+				t.ErrorLogger.Printf(fmt.Sprintln(t.Child.GetName(), "拉取信息失败", err))
 				time.Sleep(5 * time.Second)
 				continue
 			}
@@ -74,27 +72,17 @@ func (t *Job) RunHandel() {
 				}
 				time.Sleep(100 * time.Millisecond)
 			}
+
 			if err != nil {
+				t.ErrorLogger.Printf(fmt.Sprintf("%s 消费信息失败, msg: %+v, err: %+v", t.Child.GetName(), m, err))
+
 				jobErrString, _ := sonic.MarshalString(&JobErr{
 					Name:    t.Child.GetName(),
 					Err:     err.Error(),
 					Message: m,
 				})
-				t.Logger.Error(jobErrString)
-				for i := 1; i <= retryCount; i++ {
-					if pfErr = t.Conn.PushFailure(ctx, jobErrString); pfErr == nil {
-						break
-					}
-					if i == retryCount {
-						pfErrString := fmt.Sprintf("消费失败 %+v", gin.H{
-							"name":  t.Child.GetName(),
-							"err":   err.Error(),
-							"pfErr": pfErr.Error(),
-						})
-						fmt.Println(pfErrString)
-						t.Logger.Error(pfErrString)
-					}
-					time.Sleep(100 * time.Millisecond)
+				if pfErr := t.Conn.PushFailure(ctx, jobErrString); pfErr != nil {
+					t.ErrorLogger.Printf(fmt.Sprintf("%s PushFailure 失败, msg: %+v, err: %+v", t.Child.GetName(), m, pfErr))
 				}
 			}
 			t.Conn.CommitMessage(ctx)

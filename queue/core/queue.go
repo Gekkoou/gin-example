@@ -5,16 +5,22 @@ import (
 	"errors"
 	"fmt"
 	"gin-example/config/config"
-	"go.uber.org/zap"
+	"log"
+	"os"
 )
 
 type Queue struct {
-	Jobs   map[string]Job
-	task   []TaskInterFace
-	Logger *zap.Logger
+	Jobs        map[string]Job
+	task        []TaskInterFace
+	Logger      Logger
+	ErrorLogger Logger
 }
 
-var QueueApp = &Queue{Jobs: map[string]Job{}}
+var QueueApp = &Queue{
+	Jobs:        map[string]Job{},
+	Logger:      log.New(os.Stdout, "\r\n", log.LstdFlags),
+	ErrorLogger: log.New(os.Stdout, "\r\n", log.LstdFlags),
+}
 
 // 绑定 自定义的 TaskInterFace
 func (q *Queue) Bind(taskI TaskInterFace) {
@@ -32,7 +38,7 @@ func (q *Queue) Register(j *Job, name string) {
 // 实例化 job
 func (q *Queue) NewJob(cfg config.Queue) error {
 	for _, task := range q.task {
-		j, err := NewJob(task, cfg, q.Logger)
+		j, err := NewJob(task, cfg, q.Logger, q.ErrorLogger)
 		if err != nil {
 			return err
 		}
