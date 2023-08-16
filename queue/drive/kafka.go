@@ -10,6 +10,7 @@ import (
 	"net"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type _kafka struct {
@@ -114,7 +115,8 @@ func (k *_kafka) newWriter() *kafka.Writer {
 	return &kafka.Writer{
 		Addr:                   kafka.TCP(brokers...),
 		Balancer:               &kafka.LeastBytes{},
-		AllowAutoTopicCreation: k.Cfg.AllowAutoTopicCreation, // 是否允许不存在的 topic 自动创建, 需要注意，如果是自动创建的话，创建完之后集群会进行选举，不要马上发消息
+		AllowAutoTopicCreation: false,
+		BatchTimeout:           5 * time.Millisecond,
 	}
 }
 
