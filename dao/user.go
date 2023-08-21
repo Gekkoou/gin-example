@@ -7,12 +7,15 @@ import (
 	"gin-example/model"
 	"github.com/bytedance/sonic"
 	"github.com/redis/go-redis/v9"
+	"golang.org/x/sync/singleflight"
 	"gorm.io/gorm"
 	"strconv"
 	"time"
 )
 
-type UserDao struct{}
+type UserDao struct {
+	group singleflight.Group
+}
 
 var UserDaoApp = new(UserDao)
 
@@ -27,12 +30,22 @@ func (userDao *UserDao) SetNA(uid int) {
 	global.Redis.Set(context.Background(), userDao.GetKey(uid), "NA", time.Duration(global.UserInfoDaoTtl)*time.Second).Result()
 }
 
-func (userDao *UserDao) GetInfo(uid int) (user model.User, err error) {
+func (userDao *UserDao) GetInfo(uid int) (model.User, error) {
+	key := strconv.Itoa(uid)
+	// 防缓存击穿
+	r, err, _ := userDao.group.Do(key, func() (interface{}, error) {
+		return userDao.DoGetInfo(uid)
+	})
+	return r.(model.User), err
+}
+
+func (userDao *UserDao) DoGetInfo(uid int) (user model.User, err error) {
 	json, err := global.Redis.Get(context.Background(), userDao.GetKey(uid)).Result()
 	if err == redis.Nil {
 		// 查询mysql
 		if err = global.DB.Model(&user).Where("id = ?", uid).First(&user).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
+				// 防缓存穿透
 				userDao.SetNA(uid)
 				return user, nil
 			}
@@ -41,7 +54,6 @@ func (userDao *UserDao) GetInfo(uid int) (user model.User, err error) {
 		userDao.SetInfo(user)
 	} else if err == nil {
 		if json == "NA" {
-			userDao.SetNA(uid)
 			return
 		}
 		err = sonic.UnmarshalString(json, &user)

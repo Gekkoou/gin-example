@@ -3,6 +3,7 @@
 ## Uses
  - [gin](https://github.com/gin-gonic/gin)
  - [gorm](https://github.com/go-gorm/gorm)
+ - [dtm](https://github.com/dtm-labs/dtm)
  - [jwt](https://github.com/golang-jwt/jwt)
  - [zap](https://github.com/uber-go/zap)
  - [viper](https://github.com/spf13/viper)

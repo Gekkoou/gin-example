@@ -18,6 +18,7 @@ func Routes() *gin.Engine {
 	routerGroup := r.Group("")
 	{
 		router.UserRouterApp.InitUserRouter(routerGroup)
+		router.DtmRouterApp.InitDtmRouter(routerGroup)
 	}
 	docs.SwaggerInfo.BasePath = "/"
 	// 文档

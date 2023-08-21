@@ -22,5 +22,8 @@ func (s *UserRouter) InitUserRouter(route *gin.RouterGroup) {
 		middlewareRouter.POST("/update", api.UpdateUser)
 		middlewareRouter.POST("/delete", api.DeleteUser)
 	}
-	route.Use(middleware.JWTAuth()).GET("/logout", api.Logout)
+	logoutRoute := route.Group("")
+	{
+		logoutRoute.Use(middleware.JWTAuth()).GET("/logout", api.Logout)
+	}
 }
