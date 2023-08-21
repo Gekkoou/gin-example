@@ -16,7 +16,7 @@ func SageOut(c *gin.Context, db dtmcli.DB) error {
 		return dtmcli.ErrFailure
 	}
 
-	if err := global.Redis.DecrBy(context.Background(), "dtm", int64(req.Amount)).Err(); err != nil {
+	if err := global.Redis.DecrBy(context.Background(), "dtm-saga", int64(req.Amount)).Err(); err != nil {
 		return dtmcli.ErrFailure
 	}
 
@@ -29,7 +29,7 @@ func SageOutCompensate(c *gin.Context, db dtmcli.DB) error {
 		return dtmcli.ErrFailure
 	}
 
-	if err := global.Redis.IncrBy(context.Background(), "dtm", int64(req.Amount)).Err(); err != nil {
+	if err := global.Redis.IncrBy(context.Background(), "dtm-saga", int64(req.Amount)).Err(); err != nil {
 		return dtmcli.ErrFailure
 	}
 
@@ -42,7 +42,7 @@ func SageIn(c *gin.Context, db dtmcli.DB) error {
 		return dtmcli.ErrFailure
 	}
 
-	if err := global.Redis.IncrBy(context.Background(), "dtm", int64(req.Amount)).Err(); err != nil {
+	if err := global.Redis.IncrBy(context.Background(), "dtm-saga", int64(req.Amount)).Err(); err != nil {
 		return dtmcli.ErrFailure
 	}
 
@@ -55,7 +55,40 @@ func SageInCompensate(c *gin.Context, db dtmcli.DB) error {
 		return dtmcli.ErrFailure
 	}
 
-	if err := global.Redis.DecrBy(context.Background(), "dtm", int64(req.Amount)).Err(); err != nil {
+	if err := global.Redis.DecrBy(context.Background(), "dtm-saga", int64(req.Amount)).Err(); err != nil {
+		return dtmcli.ErrFailure
+	}
+
+	return nil
+}
+
+func MsgOut(db dtmcli.DB, req DtmReq) error {
+	if err := global.Redis.DecrBy(context.Background(), "dtm-msg", int64(req.Amount)).Err(); err != nil {
+		return dtmcli.ErrFailure
+	}
+	return nil
+}
+
+func MsgIn(c *gin.Context, db dtmcli.DB) error {
+	var req DtmReq
+	if err := c.BindJSON(&req); err != nil {
+		return dtmcli.ErrFailure
+	}
+
+	if err := global.Redis.IncrBy(context.Background(), "dtm-msg", int64(req.Amount)).Err(); err != nil {
+		return dtmcli.ErrFailure
+	}
+
+	return nil
+}
+
+func MsgIn2(c *gin.Context, db dtmcli.DB) error {
+	var req DtmReq
+	if err := c.BindJSON(&req); err != nil {
+		return dtmcli.ErrFailure
+	}
+
+	if err := global.Redis.IncrBy(context.Background(), "dtm-msg", int64(req.Amount)).Err(); err != nil {
 		return dtmcli.ErrFailure
 	}
 
@@ -79,7 +112,7 @@ func DtmSage(c *gin.Context) {
 	gid := shortuuid.New()
 	req := &DtmReq{Amount: 30}
 
-	global.Redis.Set(context.Background(), "dtm", 100, 5*time.Minute).Err()
+	global.Redis.Set(context.Background(), "dtm-saga", 100, 5*time.Minute).Err()
 
 	saga := dtmcli.NewSaga(dtmServer, gid).
 		Add(outServer+"/saga/out", outServer+"/saga/outCompensate", req).
@@ -90,4 +123,29 @@ func DtmSage(c *gin.Context) {
 		fmt.Println(err)
 	}
 	c.JSON(200, saga)
+}
+
+func DtmMsg(c *gin.Context) {
+	gid := shortuuid.New()
+	req := &DtmReq{Amount: 30}
+
+	global.Redis.Set(context.Background(), "dtm-msg", 100, 5*time.Minute).Err()
+
+	// 二阶段消息
+	// msg := dtmcli.NewMsg(dtmServer, gid).
+	// 	Add(inServer+"/msg/in", req)
+	// err := msg.DoAndSubmitDB(inServer+"/msg/QueryPreparedB", utils.DbGet(), func(tx *sql.Tx) error {
+	// 	return MsgOut(tx, req.Amount)
+	// })
+
+	// 普通消息
+	msg := dtmcli.NewMsg(dtmServer, gid).
+		Add(inServer+"/msg/in", req).
+		Add(inServer+"/msg/in2", req)
+	err := msg.Submit()
+
+	if err != nil {
+		fmt.Println(err)
+	}
+	c.JSON(200, msg)
 }

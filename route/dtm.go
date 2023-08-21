@@ -43,5 +43,24 @@ func (s *UserRouter) InitDtmRouter(router *gin.RouterGroup) {
 				})
 			}))
 		}
+		msgRouter := r.Group("/msg")
+		{
+			msgRouter.GET("", api.DtmMsg)
+			msgRouter.POST("/in", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
+				barrier := utils.MustBarrierFromGin(c)
+				return barrier.CallWithDB(utils.DbGet(), func(tx *sql.Tx) error {
+					return api.MsgIn(c, tx)
+				})
+			}))
+			msgRouter.POST("/in2", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
+				barrier := utils.MustBarrierFromGin(c)
+				return barrier.CallWithDB(utils.DbGet(), func(tx *sql.Tx) error {
+					return api.MsgIn2(c, tx)
+				})
+			}))
+			msgRouter.GET("/QueryPreparedB", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
+				return utils.MustBarrierFromGin(c).QueryPrepared(utils.DbGet())
+			}))
+		}
 	}
 }
