@@ -82,8 +82,8 @@ func DtmSage(c *gin.Context) {
 	global.Redis.Set(context.Background(), "dtm", 100, 5*time.Minute).Err()
 
 	saga := dtmcli.NewSaga(dtmServer, gid).
-		Add(outServer+"/out", outServer+"/outCompensate", req).
-		Add(inServer+"/in", inServer+"/inCompensate", req)
+		Add(outServer+"/saga/out", outServer+"/saga/outCompensate", req).
+		Add(inServer+"/saga/in", inServer+"/saga/inCompensate", req)
 
 	err := saga.Submit()
 	if err != nil {
