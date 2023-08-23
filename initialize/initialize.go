@@ -22,6 +22,12 @@ func Initialize(reload bool) {
 		fmt.Printf("Log初始化失败, err = %s", err.Error())
 		return
 	}
+	// 初始化数据库
+	err = InitDatabase()
+	if err != nil {
+		fmt.Printf("初始化数据库失败, err = %s", err.Error())
+		return
+	}
 	// 初始化DB
 	global.DB, err = GormMysql()
 	if err != nil {
@@ -29,9 +35,9 @@ func Initialize(reload bool) {
 		return
 	}
 	// 迁移
-	err = RegisterTables()
+	err = InitTable()
 	if err != nil {
-		fmt.Printf("数据库迁移失败, err = %s", err.Error())
+		fmt.Printf("迁移失败, err = %s", err.Error())
 		return
 	}
 	// 初始化Redis

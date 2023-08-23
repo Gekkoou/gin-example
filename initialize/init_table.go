@@ -6,6 +6,6 @@ import (
 )
 
 // 数据库迁移
-func RegisterTables() error {
+func InitTable() error {
 	return global.DB.AutoMigrate(model.User{})
 }
