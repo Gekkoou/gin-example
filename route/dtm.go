@@ -20,29 +20,17 @@ func (s *UserRouter) InitDtmRouter(router *gin.RouterGroup) {
 		sageRouter := r.Group("/saga")
 		{
 			sageRouter.GET("", api.DtmSage)
-			sageRouter.POST("/out", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
-				barrier := utils.MustBarrierFromGin(c)
-				return barrier.CallWithDB(utils.DbGet(), func(tx *sql.Tx) error {
-					return api.SageOut(c, tx)
-				})
+			sageRouter.POST("/out", utils.DtmBarrierHandler(func(c *gin.Context) interface{} {
+				return utils.Barrier(c, api.SageOut)
 			}))
-			sageRouter.POST("/outCompensate", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
-				barrier := utils.MustBarrierFromGin(c)
-				return barrier.CallWithDB(utils.DbGet(), func(tx *sql.Tx) error {
-					return api.SageOutCompensate(c, tx)
-				})
+			sageRouter.POST("/outCompensate", utils.DtmBarrierHandler(func(c *gin.Context) interface{} {
+				return utils.Barrier(c, api.SageOutCompensate)
 			}))
-			sageRouter.POST("/in", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
-				barrier := utils.MustBarrierFromGin(c)
-				return barrier.CallWithDB(utils.DbGet(), func(tx *sql.Tx) error {
-					return api.SageIn(c, tx)
-				})
+			sageRouter.POST("/in", utils.DtmBarrierHandler(func(c *gin.Context) interface{} {
+				return utils.Barrier(c, api.SageIn)
 			}))
-			sageRouter.POST("/inCompensate", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
-				barrier := utils.MustBarrierFromGin(c)
-				return barrier.CallWithDB(utils.DbGet(), func(tx *sql.Tx) error {
-					return api.SageInCompensate(c, tx)
-				})
+			sageRouter.POST("/inCompensate", utils.DtmBarrierHandler(func(c *gin.Context) interface{} {
+				return utils.Barrier(c, api.SageInCompensate)
 			}))
 		}
 
@@ -50,17 +38,11 @@ func (s *UserRouter) InitDtmRouter(router *gin.RouterGroup) {
 		msgRouter := r.Group("/msg")
 		{
 			msgRouter.GET("", api.DtmMsg)
-			msgRouter.POST("/in", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
-				barrier := utils.MustBarrierFromGin(c)
-				return barrier.CallWithDB(utils.DbGet(), func(tx *sql.Tx) error {
-					return api.MsgIn(c, tx)
-				})
+			msgRouter.POST("/in", utils.DtmBarrierHandler(func(c *gin.Context) interface{} {
+				return utils.Barrier(c, api.MsgIn)
 			}))
-			msgRouter.POST("/in2", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
-				barrier := utils.MustBarrierFromGin(c)
-				return barrier.CallWithDB(utils.DbGet(), func(tx *sql.Tx) error {
-					return api.MsgIn2(c, tx)
-				})
+			msgRouter.POST("/in2", utils.DtmBarrierHandler(func(c *gin.Context) interface{} {
+				return utils.Barrier(c, api.MsgIn2)
 			}))
 			msgRouter.GET("/QueryPreparedB", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
 				return utils.MustBarrierFromGin(c).QueryPrepared(utils.DbGet())
@@ -71,41 +53,23 @@ func (s *UserRouter) InitDtmRouter(router *gin.RouterGroup) {
 		tccRouter := r.Group("/tcc")
 		{
 			tccRouter.GET("", api.DtmTcc)
-			tccRouter.POST("/outTry", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
-				barrier := utils.MustBarrierFromGin(c)
-				return barrier.CallWithDB(utils.DbGet(), func(tx *sql.Tx) error {
-					return api.TccOutTry(c, tx)
-				})
+			tccRouter.POST("/outTry", utils.DtmBarrierHandler(func(c *gin.Context) interface{} {
+				return utils.Barrier(c, api.TccOutTry)
 			}))
-			tccRouter.POST("/outConfirm", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
-				barrier := utils.MustBarrierFromGin(c)
-				return barrier.CallWithDB(utils.DbGet(), func(tx *sql.Tx) error {
-					return api.TccOutConfirm(c, tx)
-				})
+			tccRouter.POST("/outConfirm", utils.DtmBarrierHandler(func(c *gin.Context) interface{} {
+				return utils.Barrier(c, api.TccOutConfirm)
 			}))
-			tccRouter.POST("/outCancel", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
-				barrier := utils.MustBarrierFromGin(c)
-				return barrier.CallWithDB(utils.DbGet(), func(tx *sql.Tx) error {
-					return api.TccOutCancel(c, tx)
-				})
+			tccRouter.POST("/outCancel", utils.DtmBarrierHandler(func(c *gin.Context) interface{} {
+				return utils.Barrier(c, api.TccOutCancel)
 			}))
-			tccRouter.POST("/inTry", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
-				barrier := utils.MustBarrierFromGin(c)
-				return barrier.CallWithDB(utils.DbGet(), func(tx *sql.Tx) error {
-					return api.TccInTry(c, tx)
-				})
+			tccRouter.POST("/inTry", utils.DtmBarrierHandler(func(c *gin.Context) interface{} {
+				return utils.Barrier(c, api.TccInTry)
 			}))
-			tccRouter.POST("/inConfirm", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
-				barrier := utils.MustBarrierFromGin(c)
-				return barrier.CallWithDB(utils.DbGet(), func(tx *sql.Tx) error {
-					return api.TccInConfirm(c, tx)
-				})
+			tccRouter.POST("/inConfirm", utils.DtmBarrierHandler(func(c *gin.Context) interface{} {
+				return utils.Barrier(c, api.TccInConfirm)
 			}))
-			tccRouter.POST("/inCancel", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
-				barrier := utils.MustBarrierFromGin(c)
-				return barrier.CallWithDB(utils.DbGet(), func(tx *sql.Tx) error {
-					return api.TccInCancel(c, tx)
-				})
+			tccRouter.POST("/inCancel", utils.DtmBarrierHandler(func(c *gin.Context) interface{} {
+				return utils.Barrier(c, api.TccInCancel)
 			}))
 		}
 
