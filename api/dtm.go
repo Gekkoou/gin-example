@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"gin-example/global"
 	"gin-example/model"
+	"gin-example/utils"
 	"github.com/dtm-labs/client/dtmcli"
 	"github.com/dtm-labs/dtm/dtmutil"
 	"github.com/gin-gonic/gin"
@@ -45,11 +46,8 @@ func DtmSage(c *gin.Context) {
 
 	gid := shortuuid.New()
 
-	global.Redis.Set(context.Background(), "dtm-saga-"+reqOut.User, 100, 5*time.Minute).Err()
-	global.Redis.Set(context.Background(), "dtm-saga-"+reqIn.User, 100, 5*time.Minute).Err()
-
-	global.DB.Where(model.User{Name: "a"}).Attrs(model.User{Password: "123", Phone: "188", Gold: 100}).FirstOrCreate(&model.User{})
-	global.DB.Where(model.User{Name: "b"}).Attrs(model.User{Password: "123", Phone: "133", Gold: 100}).FirstOrCreate(&model.User{})
+	global.DB.Where(model.User{Name: reqOut.User}).Attrs(model.User{Password: utils.BcryptHash("123"), Phone: "188", Gold: 100}).FirstOrCreate(&model.User{})
+	global.DB.Where(model.User{Name: reqIn.User}).Attrs(model.User{Password: utils.BcryptHash("123"), Phone: "133", Gold: 100}).FirstOrCreate(&model.User{})
 
 	saga := dtmcli.NewSaga(dtmServer, gid).
 		Add(outServer+"/saga/out", outServer+"/saga/outCompensate", reqOut).
@@ -139,6 +137,7 @@ func SageOut(c *gin.Context, db *gorm.DB) error {
 	if err := c.BindJSON(&req); err != nil {
 		return dtmcli.ErrFailure
 	}
+
 	var user model.User
 	err := db.Where("name", req.User).First(&user).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -147,12 +146,11 @@ func SageOut(c *gin.Context, db *gorm.DB) error {
 	if user.Gold < req.Amount {
 		return dtmcli.ErrFailure
 	}
-	if err := db.Model(&user).Where("name", req.User).Update("gold", gorm.Expr("gold - ?", req.Amount)).Error; err != nil {
+
+	if err = db.Model(&user).Where("name", req.User).Update("gold", gorm.Expr("gold - ?", req.Amount)).Error; err != nil {
 		return dtmcli.ErrFailure
 	}
-	if err := global.Redis.DecrBy(context.Background(), "dtm-saga-"+req.User, int64(req.Amount)).Err(); err != nil {
-		return dtmcli.ErrFailure
-	}
+
 	return nil
 }
 
@@ -161,10 +159,8 @@ func SageOutCompensate(c *gin.Context, db *gorm.DB) error {
 	if err := c.BindJSON(&req); err != nil {
 		return dtmcli.ErrFailure
 	}
+
 	if err := db.Model(&model.User{}).Where("name", req.User).Update("gold", gorm.Expr("gold + ?", req.Amount)).Error; err != nil {
-		return dtmcli.ErrFailure
-	}
-	if err := global.Redis.IncrBy(context.Background(), "dtm-saga-"+req.User, int64(req.Amount)).Err(); err != nil {
 		return dtmcli.ErrFailure
 	}
 
@@ -172,16 +168,12 @@ func SageOutCompensate(c *gin.Context, db *gorm.DB) error {
 }
 
 func SageIn(c *gin.Context, db *gorm.DB) error {
-
 	var req DtmReq
 	if err := c.BindJSON(&req); err != nil {
 		return dtmcli.ErrFailure
 	}
-	if err := db.Model(&model.User{}).Where("name", req.User).Update("gold", gorm.Expr("gold + ?", req.Amount)).Error; err != nil {
-		return dtmcli.ErrFailure
-	}
 
-	if err := global.Redis.IncrBy(context.Background(), "dtm-saga-"+req.User, int64(req.Amount)).Err(); err != nil {
+	if err := db.Model(&model.User{}).Where("name", req.User).Update("gold", gorm.Expr("gold + ?", req.Amount)).Error; err != nil {
 		return dtmcli.ErrFailure
 	}
 
@@ -195,10 +187,6 @@ func SageInCompensate(c *gin.Context, db *gorm.DB) error {
 	}
 
 	if err := db.Model(&model.User{}).Where("name", req.User).UpdateColumn("gold", gorm.Expr("gold - ?", req.Amount)).Error; err != nil {
-		return dtmcli.ErrFailure
-	}
-
-	if err := global.Redis.DecrBy(context.Background(), "dtm-saga-"+req.User, int64(req.Amount)).Err(); err != nil {
 		return dtmcli.ErrFailure
 	}
 
@@ -359,11 +347,12 @@ func TccInCancel(c *gin.Context, db *gorm.DB) error {
 	return nil
 }
 
-func XaOut(c *gin.Context, db dtmcli.DB) error {
+func XaOut(c *gin.Context, db *gorm.DB) error {
 	var req DtmReq
 	if err := c.BindJSON(&req); err != nil {
 		return dtmcli.ErrFailure
 	}
+
 	if err := global.Redis.DecrBy(context.Background(), "dtm-xa-"+req.User, int64(req.Amount)).Err(); err != nil {
 		return dtmcli.ErrFailure
 	}
@@ -371,11 +360,12 @@ func XaOut(c *gin.Context, db dtmcli.DB) error {
 	return nil
 }
 
-func XaIn(c *gin.Context, db dtmcli.DB) error {
+func XaIn(c *gin.Context, db *gorm.DB) error {
 	var req DtmReq
 	if err := c.BindJSON(&req); err != nil {
 		return dtmcli.ErrFailure
 	}
+
 	if err := global.Redis.IncrBy(context.Background(), "dtm-xa-"+req.User, int64(req.Amount)).Err(); err != nil {
 		return dtmcli.ErrFailure
 	}

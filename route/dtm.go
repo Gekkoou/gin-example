@@ -1,10 +1,8 @@
 package router
 
 import (
-	"database/sql"
 	"gin-example/api"
 	"gin-example/utils"
-	"github.com/dtm-labs/client/dtmcli"
 	"github.com/dtm-labs/dtm/dtmutil"
 	"github.com/gin-gonic/gin"
 )
@@ -77,15 +75,11 @@ func (s *UserRouter) InitDtmRouter(router *gin.RouterGroup) {
 		xaRouter := r.Group("/xa")
 		{
 			xaRouter.GET("", api.DtmXa)
-			xaRouter.POST("/out", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
-				return dtmcli.XaLocalTransaction(c.Request.URL.Query(), utils.DtmConf, func(db *sql.DB, xa *dtmcli.Xa) error {
-					return api.XaOut(c, db)
-				})
+			xaRouter.POST("/out", utils.DtmBarrierHandler(func(c *gin.Context) interface{} {
+				return utils.XaLocalTransaction(c, api.XaOut)
 			}))
-			xaRouter.POST("/in", dtmutil.WrapHandler(func(c *gin.Context) interface{} {
-				return dtmcli.XaLocalTransaction(c.Request.URL.Query(), utils.DtmConf, func(db *sql.DB, xa *dtmcli.Xa) error {
-					return api.XaIn(c, db)
-				})
+			xaRouter.POST("/in", utils.DtmBarrierHandler(func(c *gin.Context) interface{} {
+				return utils.XaLocalTransaction(c, api.XaIn)
 			}))
 		}
 	}

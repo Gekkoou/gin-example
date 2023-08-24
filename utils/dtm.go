@@ -9,14 +9,20 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"strconv"
 )
 
-var DtmConf = dtmcli.DBConf{
-	Driver:   "mysql",
-	Host:     "127.0.0.1",
-	Port:     3306,
-	User:     "root",
-	Password: "root",
+func DbConf() dtmcli.DBConf {
+	conf := global.Config.Mysql
+	port, _ := strconv.ParseInt(conf.Port, 10, 64)
+	return dtmcli.DBConf{
+		Driver:   "mysql",
+		Host:     conf.Path,
+		Port:     port,
+		User:     conf.Username,
+		Password: conf.Password,
+		Db:       conf.Dbname,
+	}
 }
 
 func MustBarrierFromGin(c *gin.Context) *dtmcli.BranchBarrier {
@@ -42,7 +48,19 @@ func Barrier(c *gin.Context, fn DtmBarrierBusiFunc) error {
 	return barrier.CallWithDB(DbGet(), func(tx *sql.Tx) error {
 		gormDB, err := gorm.Open(mysql.New(mysql.Config{
 			Conn: tx,
-		}))
+		}), &gorm.Config{})
+		if err != nil {
+			return dtmcli.ErrFailure
+		}
+		return fn(c, gormDB)
+	})
+}
+
+func XaLocalTransaction(c *gin.Context, fn DtmBarrierBusiFunc) error {
+	return dtmcli.XaLocalTransaction(c.Request.URL.Query(), DbConf(), func(db *sql.DB, xa *dtmcli.Xa) error {
+		gormDB, err := gorm.Open(mysql.New(mysql.Config{
+			Conn: db,
+		}), &gorm.Config{})
 		if err != nil {
 			return dtmcli.ErrFailure
 		}
