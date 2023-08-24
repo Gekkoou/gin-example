@@ -48,7 +48,9 @@ func Barrier(c *gin.Context, fn DtmBarrierBusiFunc) error {
 	return barrier.CallWithDB(DbGet(), func(tx *sql.Tx) error {
 		gormDB, err := gorm.Open(mysql.New(mysql.Config{
 			Conn: tx,
-		}), &gorm.Config{})
+		}), &gorm.Config{
+			SkipDefaultTransaction: true,
+		})
 		if err != nil {
 			return dtmcli.ErrFailure
 		}
@@ -60,7 +62,9 @@ func XaLocalTransaction(c *gin.Context, fn DtmBarrierBusiFunc) error {
 	return dtmcli.XaLocalTransaction(c.Request.URL.Query(), DbConf(), func(db *sql.DB, xa *dtmcli.Xa) error {
 		gormDB, err := gorm.Open(mysql.New(mysql.Config{
 			Conn: db,
-		}), &gorm.Config{})
+		}), &gorm.Config{
+			SkipDefaultTransaction: true,
+		})
 		if err != nil {
 			return dtmcli.ErrFailure
 		}

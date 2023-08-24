@@ -36,6 +36,9 @@ var (
 	reqOut = &DtmReq{Amount: 30, User: "a"}
 	reqIn  = &DtmReq{Amount: 30, User: "b"}
 
+	reqXaOut = &DtmReq{Amount: 30, User: "dtm-xa-a"}
+	reqXaIn  = &DtmReq{Amount: 30, User: "dtm-xa-b"}
+
 	reqTccOut = &DtmTccReq{Amount: 30, User: "a"}
 	reqTccIn  = &DtmTccReq{Amount: 30, User: "b"}
 )
@@ -115,15 +118,15 @@ func DtmTcc(c *gin.Context) {
 func DtmXa(c *gin.Context) {
 	gid := shortuuid.New()
 
-	global.Redis.Set(context.Background(), "dtm-xa-"+reqOut.User, 100, 5*time.Minute).Err()
-	global.Redis.Set(context.Background(), "dtm-xa-"+reqIn.User, 100, 5*time.Minute).Err()
+	global.DB.Where(model.User{Name: reqXaOut.User}).Attrs(model.User{Password: utils.BcryptHash("123456"), Phone: "135", Gold: 100}).FirstOrCreate(&model.User{})
+	global.DB.Where(model.User{Name: reqXaIn.User}).Attrs(model.User{Password: utils.BcryptHash("123456"), Phone: "135", Gold: 100}).FirstOrCreate(&model.User{})
 
 	err := dtmcli.XaGlobalTransaction(dtmutil.DefaultHTTPServer, gid, func(xa *dtmcli.Xa) (*resty.Response, error) {
-		resp, err := xa.CallBranch(reqOut, outServer+"/xa/out")
+		resp, err := xa.CallBranch(reqXaOut, outServer+"/xa/out")
 		if err != nil {
 			return resp, err
 		}
-		return xa.CallBranch(reqIn, inServer+"/xa/in")
+		return xa.CallBranch(reqXaIn, inServer+"/xa/in")
 	})
 
 	if err != nil {
@@ -353,7 +356,16 @@ func XaOut(c *gin.Context, db *gorm.DB) error {
 		return dtmcli.ErrFailure
 	}
 
-	if err := global.Redis.DecrBy(context.Background(), "dtm-xa-"+req.User, int64(req.Amount)).Err(); err != nil {
+	var user model.User
+	err := db.Where("name", req.User).First(&user).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return dtmcli.ErrFailure
+	}
+	if user.Gold < req.Amount {
+		return dtmcli.ErrFailure
+	}
+
+	if err = db.Model(&user).Where("name", req.User).Update("gold", gorm.Expr("gold - ?", req.Amount)).Error; err != nil {
 		return dtmcli.ErrFailure
 	}
 
@@ -366,7 +378,7 @@ func XaIn(c *gin.Context, db *gorm.DB) error {
 		return dtmcli.ErrFailure
 	}
 
-	if err := global.Redis.IncrBy(context.Background(), "dtm-xa-"+req.User, int64(req.Amount)).Err(); err != nil {
+	if err := db.Model(&model.User{}).Where("name", req.User).Update("gold", gorm.Expr("gold + ?", req.Amount)).Error; err != nil {
 		return dtmcli.ErrFailure
 	}
 
