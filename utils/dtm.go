@@ -7,6 +7,8 @@ import (
 	"github.com/dtm-labs/client/dtmcli"
 	"github.com/dtm-labs/dtm/dtmutil"
 	"github.com/gin-gonic/gin"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 var DtmConf = dtmcli.DBConf{
@@ -33,11 +35,17 @@ func DtmBarrierHandler(fn func(c *gin.Context) interface{}) gin.HandlerFunc {
 }
 
 // DtmBarrierBusiFunc type for busi func
-type DtmBarrierBusiFunc func(c *gin.Context, db dtmcli.DB) error
+type DtmBarrierBusiFunc func(c *gin.Context, db *gorm.DB) error
 
 func Barrier(c *gin.Context, fn DtmBarrierBusiFunc) error {
 	barrier := MustBarrierFromGin(c)
 	return barrier.CallWithDB(DbGet(), func(tx *sql.Tx) error {
-		return fn(c, tx)
+		gormDB, err := gorm.Open(mysql.New(mysql.Config{
+			Conn: tx,
+		}))
+		if err != nil {
+			return dtmcli.ErrFailure
+		}
+		return fn(c, gormDB)
 	})
 }

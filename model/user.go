@@ -14,6 +14,7 @@ type User struct {
 	Name     string `gorm:"column:name;type:varchar(50);comment:用户名;NOT NULL" json:"name"`
 	Password string `gorm:"column:password;type:varchar(100);comment:密码;NOT NULL" json:"password"`
 	Phone    string `gorm:"column:phone;type:varchar(50);comment:手机号;NOT NULL" json:"phone"`
+	Gold     int    `gorm:"column:gold;type:int(11);comment:金币;NOT NULL;default:0" json:"gold"`
 }
 
 func (User) TableName() string {

@@ -5,11 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"gin-example/global"
+	"gin-example/model"
 	"github.com/dtm-labs/client/dtmcli"
 	"github.com/dtm-labs/dtm/dtmutil"
 	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"
 	"github.com/lithammer/shortuuid"
+	"gorm.io/gorm"
 	"strconv"
 	"time"
 )
@@ -45,6 +47,9 @@ func DtmSage(c *gin.Context) {
 
 	global.Redis.Set(context.Background(), "dtm-saga-"+reqOut.User, 100, 5*time.Minute).Err()
 	global.Redis.Set(context.Background(), "dtm-saga-"+reqIn.User, 100, 5*time.Minute).Err()
+
+	global.DB.Where(model.User{Name: "a"}).Attrs(model.User{Password: "123", Phone: "188", Gold: 100}).FirstOrCreate(&model.User{})
+	global.DB.Where(model.User{Name: "b"}).Attrs(model.User{Password: "123", Phone: "133", Gold: 100}).FirstOrCreate(&model.User{})
 
 	saga := dtmcli.NewSaga(dtmServer, gid).
 		Add(outServer+"/saga/out", outServer+"/saga/outCompensate", reqOut).
@@ -129,22 +134,50 @@ func DtmXa(c *gin.Context) {
 	c.JSON(200, "dtm xa ok")
 }
 
-func SageOut(c *gin.Context, db dtmcli.DB) error {
+func SageOut(c *gin.Context, db *gorm.DB) error {
 	var req DtmReq
 	if err := c.BindJSON(&req); err != nil {
 		return dtmcli.ErrFailure
 	}
-
+	var user model.User
+	err := db.Where("name", req.User).First(&user).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return dtmcli.ErrFailure
+	}
+	if user.Gold < req.Amount {
+		return dtmcli.ErrFailure
+	}
+	if err := db.Model(&user).Where("name", req.User).Update("gold", gorm.Expr("gold - ?", req.Amount)).Error; err != nil {
+		return dtmcli.ErrFailure
+	}
 	if err := global.Redis.DecrBy(context.Background(), "dtm-saga-"+req.User, int64(req.Amount)).Err(); err != nil {
 		return dtmcli.ErrFailure
 	}
+	return nil
+}
+
+func SageOutCompensate(c *gin.Context, db *gorm.DB) error {
+	var req DtmReq
+	if err := c.BindJSON(&req); err != nil {
+		return dtmcli.ErrFailure
+	}
+	if err := db.Model(&model.User{}).Where("name", req.User).Update("gold", gorm.Expr("gold + ?", req.Amount)).Error; err != nil {
+		return dtmcli.ErrFailure
+	}
+	if err := global.Redis.IncrBy(context.Background(), "dtm-saga-"+req.User, int64(req.Amount)).Err(); err != nil {
+		return dtmcli.ErrFailure
+	}
 
 	return nil
 }
 
-func SageOutCompensate(c *gin.Context, db dtmcli.DB) error {
+func SageIn(c *gin.Context, db *gorm.DB) error {
+
 	var req DtmReq
 	if err := c.BindJSON(&req); err != nil {
+		return dtmcli.ErrFailure
+	}
+	if err := db.Model(&model.User{}).Where("name", req.User).Update("gold", gorm.Expr("gold + ?", req.Amount)).Error; err != nil {
 		return dtmcli.ErrFailure
 	}
 
@@ -155,22 +188,13 @@ func SageOutCompensate(c *gin.Context, db dtmcli.DB) error {
 	return nil
 }
 
-func SageIn(c *gin.Context, db dtmcli.DB) error {
+func SageInCompensate(c *gin.Context, db *gorm.DB) error {
 	var req DtmReq
 	if err := c.BindJSON(&req); err != nil {
 		return dtmcli.ErrFailure
 	}
 
-	if err := global.Redis.IncrBy(context.Background(), "dtm-saga-"+req.User, int64(req.Amount)).Err(); err != nil {
-		return dtmcli.ErrFailure
-	}
-
-	return nil
-}
-
-func SageInCompensate(c *gin.Context, db dtmcli.DB) error {
-	var req DtmReq
-	if err := c.BindJSON(&req); err != nil {
+	if err := db.Model(&model.User{}).Where("name", req.User).UpdateColumn("gold", gorm.Expr("gold - ?", req.Amount)).Error; err != nil {
 		return dtmcli.ErrFailure
 	}
 
@@ -188,7 +212,7 @@ func MsgOut(db dtmcli.DB, req *DtmReq) error {
 	return nil
 }
 
-func MsgIn(c *gin.Context, db dtmcli.DB) error {
+func MsgIn(c *gin.Context, db *gorm.DB) error {
 	var req DtmReq
 	if err := c.BindJSON(&req); err != nil {
 		return dtmcli.ErrFailure
@@ -201,7 +225,7 @@ func MsgIn(c *gin.Context, db dtmcli.DB) error {
 	return nil
 }
 
-func MsgIn2(c *gin.Context, db dtmcli.DB) error {
+func MsgIn2(c *gin.Context, db *gorm.DB) error {
 	var req DtmReq
 	if err := c.BindJSON(&req); err != nil {
 		return dtmcli.ErrFailure
@@ -227,7 +251,7 @@ func getTccUserAmount(req *DtmTccReq) (amount int, frozenAmount int, err error) 
 	return
 }
 
-func TccOutTry(c *gin.Context, db dtmcli.DB) error {
+func TccOutTry(c *gin.Context, db *gorm.DB) error {
 	var req DtmTccReq
 	if err := c.BindJSON(&req); err != nil {
 		return dtmcli.ErrFailure
@@ -245,7 +269,7 @@ func TccOutTry(c *gin.Context, db dtmcli.DB) error {
 	return nil
 }
 
-func TccOutConfirm(c *gin.Context, db dtmcli.DB) error {
+func TccOutConfirm(c *gin.Context, db *gorm.DB) error {
 	var req DtmTccReq
 	if err := c.BindJSON(&req); err != nil {
 		return dtmcli.ErrFailure
@@ -263,7 +287,7 @@ func TccOutConfirm(c *gin.Context, db dtmcli.DB) error {
 	return nil
 }
 
-func TccOutCancel(c *gin.Context, db dtmcli.DB) error {
+func TccOutCancel(c *gin.Context, db *gorm.DB) error {
 	var req DtmTccReq
 	if err := c.BindJSON(&req); err != nil {
 		return dtmcli.ErrFailure
@@ -281,7 +305,7 @@ func TccOutCancel(c *gin.Context, db dtmcli.DB) error {
 	return nil
 }
 
-func TccInTry(c *gin.Context, db dtmcli.DB) error {
+func TccInTry(c *gin.Context, db *gorm.DB) error {
 	var req DtmTccReq
 	if err := c.BindJSON(&req); err != nil {
 		return dtmcli.ErrFailure
@@ -299,7 +323,7 @@ func TccInTry(c *gin.Context, db dtmcli.DB) error {
 	return nil
 }
 
-func TccInConfirm(c *gin.Context, db dtmcli.DB) error {
+func TccInConfirm(c *gin.Context, db *gorm.DB) error {
 	var req DtmTccReq
 	if err := c.BindJSON(&req); err != nil {
 		return dtmcli.ErrFailure
@@ -317,7 +341,7 @@ func TccInConfirm(c *gin.Context, db dtmcli.DB) error {
 	return nil
 }
 
-func TccInCancel(c *gin.Context, db dtmcli.DB) error {
+func TccInCancel(c *gin.Context, db *gorm.DB) error {
 	var req DtmTccReq
 	if err := c.BindJSON(&req); err != nil {
 		return dtmcli.ErrFailure
@@ -340,7 +364,6 @@ func XaOut(c *gin.Context, db dtmcli.DB) error {
 	if err := c.BindJSON(&req); err != nil {
 		return dtmcli.ErrFailure
 	}
-
 	if err := global.Redis.DecrBy(context.Background(), "dtm-xa-"+req.User, int64(req.Amount)).Err(); err != nil {
 		return dtmcli.ErrFailure
 	}
@@ -353,7 +376,6 @@ func XaIn(c *gin.Context, db dtmcli.DB) error {
 	if err := c.BindJSON(&req); err != nil {
 		return dtmcli.ErrFailure
 	}
-
 	if err := global.Redis.IncrBy(context.Background(), "dtm-xa-"+req.User, int64(req.Amount)).Err(); err != nil {
 		return dtmcli.ErrFailure
 	}
