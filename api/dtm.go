@@ -13,6 +13,7 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/lithammer/shortuuid"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"strconv"
 	"time"
 )
@@ -142,7 +143,7 @@ func SageOut(c *gin.Context, db *gorm.DB) error {
 	}
 
 	var user model.User
-	err := db.Where("name", req.User).First(&user).Error
+	err := db.Clauses(clause.Locking{Strength: "UPDATE"}).Where("name", req.User).First(&user).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return dtmcli.ErrFailure
 	}
