@@ -7,12 +7,12 @@
 | gin                  | Web框架    | https://github.com/gin-gonic/gin                      |
 | gorm                 | ORM库     | https://github.com/go-gorm/gorm                       |
 | dtm                  | 分布式事务服务  | https://github.com/dtm-labs/dtm                       |
-| jwt                  | Jwt库     | https://github.com/golang-jwt/jwt                     |
+| jwt                  | JWT库     | https://github.com/golang-jwt/jwt                     |
 | zap                  | 日志库      | https://github.com/uber-go/zap                        |
 | viper                | 配置管理     | https://github.com/spf13/viper                        |
 | go-redis             | Redis库   | https://github.com/redis/go-redi                      |
 | kafka-go             | Kafka库   | https://github.com/segmentio/kafka-go                 |
-| sonic                | Json库    | https://github.com/bytedance/sonic                    |
+| sonic                | JSON库    | https://github.com/bytedance/sonic                    |
 | gin-swagger          | Swagger库 | https://github.com/swaggo/gin-swagger                 |
 | universal-translator | i18n库    | https://github.com/go-playground/universal-translator |
 | file-rotatelogs      | 日志分割库    | https://github.com/lestrrat-go/file-rotatelogs        |
