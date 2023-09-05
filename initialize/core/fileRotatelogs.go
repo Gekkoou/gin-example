@@ -15,7 +15,7 @@ type fileRotatelogs struct{}
 
 func (r *fileRotatelogs) GetWriteSyncer(level string) (zapcore.WriteSyncer, error) {
 	fileWriter, err := rotatelogs.New(
-		path.Join(global.Config.Zap.Director, "%Y-%m-%d", level+".log"),
+		path.Join(global.Config.Zap.Directory, "%Y-%m-%d", level+".log"),
 		rotatelogs.WithClock(rotatelogs.Local),
 		rotatelogs.WithMaxAge(time.Duration(global.Config.Zap.MaxAge)*24*time.Hour), // 日志留存时间
 		rotatelogs.WithRotationTime(time.Hour*24),

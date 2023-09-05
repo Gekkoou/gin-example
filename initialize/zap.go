@@ -12,9 +12,9 @@ import (
 
 // Zap 获取 zap.Logger
 func Zap() (logger *zap.Logger, err error) {
-	if ok, _ := utils.PathExists(global.Config.Zap.Director); !ok { // 判断是否有Director文件夹
-		fmt.Printf("create %v directory\n", global.Config.Zap.Director)
-		_ = os.Mkdir(global.Config.Zap.Director, os.ModePerm)
+	if ok, _ := utils.PathExists(global.Config.Zap.Directory); !ok { // 判断是否有Directory文件夹
+		fmt.Printf("create %v directory\n", global.Config.Zap.Directory)
+		_ = os.Mkdir(global.Config.Zap.Directory, os.ModePerm)
 	}
 	cores := core.Zap.GetZapCores()
 	logger = zap.New(zapcore.NewTee(cores...))

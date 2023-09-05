@@ -9,7 +9,7 @@ type Zap struct {
 	Level         string `mapstructure:"level" json:"level"`                   // 级别
 	Prefix        string `mapstructure:"prefix" json:"prefix"`                 // 日志前缀
 	Format        string `mapstructure:"format" json:"format"`                 // 输出
-	Director      string `mapstructure:"director" json:"director"`             // 日志文件夹
+	Directory     string `mapstructure:"directory" json:"directory"`           // 日志文件夹
 	EncodeLevel   string `mapstructure:"encode-level" json:"encode-level"`     // 编码级
 	StacktraceKey string `mapstructure:"stacktrace-key" json:"stacktrace-key"` // 栈名
 

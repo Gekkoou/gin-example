@@ -19,7 +19,7 @@ zap:
   level: info
   prefix: ""
   format: json
-  director: log
+  directory: log
   encode-level: LowercaseLevelEncoder
   stacktrace-key: stacktrace
   max-age: 0
