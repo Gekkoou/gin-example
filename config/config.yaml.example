@@ -39,6 +39,7 @@ queue:
     db: 0
     addr: 127.0.0.1:6379
     password: ""
+    pool-size: 100
   kafka:
     brokers: 127.0.0.1:9092
     min-bytes: 1

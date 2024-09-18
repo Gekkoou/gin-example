@@ -39,7 +39,6 @@ func (q *Queue) Register(j *Job, name string) {
 func (q *Queue) NewJob(cfg config.Queue) error {
 	for _, task := range q.task {
 		j, err := NewJob(task, cfg, q.Logger, q.ErrorLogger)
-		fmt.Println("j.child", j.Child.GetName())
 		if err != nil {
 			return err
 		}

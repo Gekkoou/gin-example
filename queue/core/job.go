@@ -13,6 +13,9 @@ import (
 	"time"
 )
 
+// 一个协程最多处理任务数，防止协程泄露
+var _maxTaskNum = 1000
+
 type JobErr struct {
 	Name    string
 	Err     string
@@ -66,6 +69,7 @@ func (t *Job) Run() {
 }
 
 func (t *Job) RunHandel(ch chan struct{}, rl ratelimit.Limiter) {
+
 	defer func() {
 		if r := recover(); r != nil {
 			t.ErrorLogger.Printf(fmt.Sprintln(t.Child.GetName(), "消费失败", r))
@@ -76,7 +80,13 @@ func (t *Job) RunHandel(ch chan struct{}, rl ratelimit.Limiter) {
 	ctx := context.Background()
 	retryCount := t.Child.GetRetryCount()
 	gid := getGID()
+	maxTask := _maxTaskNum
 	for {
+
+		if maxTask < 0 {
+			return
+		}
+		maxTask = maxTask - 1
 
 		// 限流
 		if rl != nil {
@@ -91,7 +101,8 @@ func (t *Job) RunHandel(ch chan struct{}, rl ratelimit.Limiter) {
 			continue
 		}
 
-		/*rn := rand.Intn(10)
+		/*// 测试并协程数
+		rn := rand.Intn(10)
 		if rn > 5 {
 			panic("随机抛异常")
 		}*/
@@ -105,7 +116,6 @@ func (t *Job) RunHandel(ch chan struct{}, rl ratelimit.Limiter) {
 
 		if err != nil {
 			t.ErrorLogger.Printf(fmt.Sprintf("%s 消费信息失败, msg: %+v, err: %+v", t.Child.GetName(), m, err))
-
 			jobErrString, _ := sonic.MarshalString(&JobErr{
 				Name:    t.Child.GetName(),
 				Err:     err.Error(),
@@ -122,7 +132,6 @@ func (t *Job) RunHandel(ch chan struct{}, rl ratelimit.Limiter) {
 func getGID() int64 {
 	b := make([]byte, 64)
 	b = b[:runtime.Stack(b, false)]
-	//	fmt.Printf("%s", string(b))
 	goidStr := strings.TrimPrefix(string(b), "goroutine ")
 	goidStr = goidStr[:strings.Index(goidStr, " ")]
 	gid, err := strconv.ParseInt(goidStr, 10, 64)

@@ -62,47 +62,60 @@ func Initialize(reload bool) {
 
 	go func() {
 		for {
-			time.Sleep(100 * time.Millisecond)
-			// fmt.Println("发送消息")
+
+			time.Sleep(10 * time.Millisecond)
 			go func() {
 				utils.AsynQueue("del-cache", struct {
 					Key string
-				}{"del-cache-key"})
+				}{"del-cache-key-" + time.Now().Format(time.DateTime)})
 			}()
+
 			go func() {
 				utils.AsynQueue("del-cache", struct {
 					Key string
-				}{"del-cache-key"})
+				}{"del-cache-key-" + time.Now().Format(time.DateTime)})
 			}()
+
 			go func() {
 				utils.AsynQueue("del-cache", struct {
 					Key string
-				}{"del-cache-key"})
+				}{"del-cache-key-" + time.Now().Format(time.DateTime)})
 			}()
+
 			go func() {
 				utils.AsynQueue("del-cache", struct {
 					Key string
-				}{"del-cache-key"})
+				}{"del-cache-key-" + time.Now().Format(time.DateTime)})
 			}()
+
 			go func() {
 				utils.AsynQueue("del-cache", struct {
 					Key string
-				}{"del-cache-key"})
+				}{"del-cache-key-" + time.Now().Format(time.DateTime)})
 			}()
+
+			go func() {
+				utils.AsynQueue("del-cache", struct {
+					Key string
+				}{"del-cache-key-" + time.Now().Format(time.DateTime)})
+			}()
+
 			go func() {
 				utils.AsynQueue("test-job", struct {
 					Key string
-				}{"test-job"})
+				}{"test-job" + time.Now().Format(time.DateTime)})
 			}()
+
 			go func() {
 				utils.AsynQueue("test-job", struct {
 					Key string
-				}{"test-job"})
+				}{"test-job" + time.Now().Format(time.DateTime)})
 			}()
+
 			go func() {
 				utils.AsynQueue("test-job", struct {
 					Key string
-				}{"test-job"})
+				}{"test-job" + time.Now().Format(time.DateTime)})
 			}()
 
 		}

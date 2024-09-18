@@ -7,6 +7,7 @@ import (
 	"gin-example/queue/core"
 	"gin-example/utils"
 	"github.com/bytedance/sonic"
+	"time"
 )
 
 type DelCacheTask struct{}
@@ -29,6 +30,7 @@ func (*DelCacheTask) GetConnType() core.ConnType {
 
 // 处理消费
 func (t *DelCacheTask) Handel(message string) error {
+	time.Sleep(time.Millisecond * 100)
 	p := queue.DelCachePayload{}
 	err := sonic.UnmarshalString(message, &p)
 	if err != nil {
@@ -44,7 +46,7 @@ func (t *DelCacheTask) Enable() bool {
 }
 
 func (t *DelCacheTask) GetConsumerNumber() int {
-	return 3
+	return 100
 }
 
 func (t *DelCacheTask) GetRetryCount() int {
@@ -52,5 +54,5 @@ func (t *DelCacheTask) GetRetryCount() int {
 }
 
 func (t *DelCacheTask) GetRateLimit() int {
-	return 1
+	return 200
 }

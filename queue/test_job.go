@@ -3,6 +3,7 @@ package queue
 import (
 	"gin-example/global"
 	"gin-example/queue/core"
+	"time"
 )
 
 type TestJob struct{}
@@ -25,6 +26,7 @@ func (*TestJob) GetConnType() core.ConnType {
 
 // 处理消费
 func (t *TestJob) Handel(message string) error {
+	time.Sleep(time.Millisecond * 50)
 	// p := queue.TestJobPayload{}
 	/*err := sonic.UnmarshalString(message, &p)
 	if err != nil {
@@ -40,7 +42,7 @@ func (t *TestJob) Enable() bool {
 }
 
 func (t *TestJob) GetConsumerNumber() int {
-	return 3
+	return 100
 }
 
 func (t *TestJob) GetRetryCount() int {
@@ -48,5 +50,5 @@ func (t *TestJob) GetRetryCount() int {
 }
 
 func (t *TestJob) GetRateLimit() int {
-	return 2
+	return 200
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"gin-example/config/config"
 	"github.com/redis/go-redis/v9"
+	"time"
 )
 
 type _redis struct {
@@ -18,6 +19,7 @@ func (r *_redis) NewRedis() *redis.Client {
 		Addr:     r.Cfg.Addr,
 		Password: r.Cfg.Password, // 没有密码，默认值
 		DB:       r.Cfg.DB,       // 默认DB 0
+		PoolSize: r.Cfg.PoolSize,
 	})
 	return client
 }
@@ -41,6 +43,18 @@ func (r *_redis) PushFailure(ctx context.Context, message string) (err error) {
 }
 
 func (r *_redis) GetMessage(ctx context.Context) (string, error) {
+	for {
+		msg, err := r.Comsume.RPop(ctx, r.Name).Result()
+		if err != nil && err == redis.Nil {
+			time.Sleep(time.Second)
+		} else {
+			return msg, err
+		}
+	}
+}
+
+// 阻塞的需要将 redis pool-size 的值 设置大一点，否则池中回话不够用会抛异常
+func (r *_redis) GetMessageBak(ctx context.Context) (string, error) {
 	msg, err := r.Produce.BRPop(ctx, 0, r.Name).Result()
 	if err != nil {
 		return "", err
