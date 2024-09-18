@@ -24,7 +24,7 @@ func (*DelCacheTask) GetName() string {
 
 // 连接驱动类型
 func (*DelCacheTask) GetConnType() core.ConnType {
-	return core.Kafka
+	return core.Redis
 }
 
 // 处理消费
@@ -49,4 +49,8 @@ func (t *DelCacheTask) GetConsumerNumber() int {
 
 func (t *DelCacheTask) GetRetryCount() int {
 	return 3
+}
+
+func (t *DelCacheTask) GetRateLimit() int {
+	return 1
 }

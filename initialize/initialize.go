@@ -3,6 +3,8 @@ package initialize
 import (
 	"fmt"
 	"gin-example/global"
+	"gin-example/utils"
+	"time"
 )
 
 func Initialize(reload bool) {
@@ -57,6 +59,54 @@ func Initialize(reload bool) {
 		fmt.Printf("初始化队列, err = %s", err.Error())
 		return
 	}
+
+	go func() {
+		for {
+			time.Sleep(100 * time.Millisecond)
+			// fmt.Println("发送消息")
+			go func() {
+				utils.AsynQueue("del-cache", struct {
+					Key string
+				}{"del-cache-key"})
+			}()
+			go func() {
+				utils.AsynQueue("del-cache", struct {
+					Key string
+				}{"del-cache-key"})
+			}()
+			go func() {
+				utils.AsynQueue("del-cache", struct {
+					Key string
+				}{"del-cache-key"})
+			}()
+			go func() {
+				utils.AsynQueue("del-cache", struct {
+					Key string
+				}{"del-cache-key"})
+			}()
+			go func() {
+				utils.AsynQueue("del-cache", struct {
+					Key string
+				}{"del-cache-key"})
+			}()
+			go func() {
+				utils.AsynQueue("test-job", struct {
+					Key string
+				}{"test-job"})
+			}()
+			go func() {
+				utils.AsynQueue("test-job", struct {
+					Key string
+				}{"test-job"})
+			}()
+			go func() {
+				utils.AsynQueue("test-job", struct {
+					Key string
+				}{"test-job"})
+			}()
+
+		}
+	}()
 	// 注册路由
 	r := Routes()
 	if !reload {
@@ -66,5 +116,6 @@ func Initialize(reload bool) {
 			return
 		}
 	}
+
 	return
 }
